@@ -1,61 +1,33 @@
-var gulp = require('gulp'),
-    uglify = require('gulp-uglify'),
-    sass = require('gulp-sass'),
-    jade = require('gulp-jade'),
-    webserver = require('gulp-webserver');
-    browserSync = require('browser-sync').create();
+var gulp        = require('gulp');
+var browserSync = require('browser-sync');
+var jade 		= require('gulp-jade');
+var reload 		= browserSync.reload;
 
-// Starts a test server, which you can view at http://localhost:8080
-gulp.task('server', function() {
-  gulp.src('./')
-    .pipe(webserver({
-      port: 8080,
-      host: 'localhost',
-      fallback: 'index.html',
-      livereload: true,
-      open: true
-    }))
-  ;
+// or...
+gulp.task('browser-sync', function() {
+    browserSync({
+        proxy: "http://127.0.0.1:8000/"
+    });
 });
 
-// Uglifies
-
-gulp.task('scripts', function(){
-  gulp.src('js/*.js')
-    .pipe(uglify())
-    .pipe(gulp.dest('minjs'))
+// Jade Task
+gulp.task('jade', function() {
+  return gulp.src('jade/*.jade')
+         .pipe(jade())
+         .pipe(gulp.dest('partials'));
 });
 
-gulp.task('sass', function () {
-    gulp.src('./sass/*.scss')
-        .pipe(sass())
-        .pipe(gulp.dest('./css'))
-        .pipe(livereload())
+// Index.html
+gulp.task('entrypoint', function() {
+	return gulp.src('jade/index.jade')
+			   .pipe(jade())
+			   .pipe(gulp.dest('./'));
 });
 
-gulp.task('templates', function() {
-  var YOUR_LOCALS = {};
-
-  gulp.src('./jade/*.jade')
-    .pipe(jade({
-      locals: YOUR_LOCALS,
-      pretty: true
-    }))
-    .pipe(gulp.dest('./'))
-    .pipe(livereload({ start: true }))
+// Default task
+gulp.task('default', ['browser-sync'], function() {
+	gulp.watch('jade/*.jade',['jade', browserSync.reload]);
+	gulp.watch('css/*.css', browserSync.reload);
+	gulp.watch('jade/index.jade',['entrypoint', browserSync.reload]);
+	gulp.watch('*.html', browserSync.reload);
 });
-
-//create watch task
-gulp.task('watch', function(){
-  gulp.watch(['js/*.js', 'sass/*.scss', 'jade/*.jade'], ['scripts', 'sass', 'templates']);
-});
-
-
-
-gulp.task('default', ['scripts', 'sass', 'templates', 'watch', 'server']);
-
-
-
-
-
-
